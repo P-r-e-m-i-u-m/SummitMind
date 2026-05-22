@@ -4,15 +4,40 @@ An open-source, local-first memory app for people who want to understand their o
 
 Most note apps help you store information. SummitMind helps you notice what keeps coming back.
 
+## Finish-Up-A-Thon Revival
+
+SummitMind started as a simple browser note archive and then stalled before it felt like a finished product. This revival turns it into a usable local-first reflection tool with editing, pinning, tag filters, demo data, and a monthly report.
+
+See [CHALLENGE_SUBMISSION.md](CHALLENGE_SUBMISSION.md) for the before/after story, what changed, and the DEV submission draft.
+
+![SummitMind demo](docs/summitmind-demo-full.png)
+
 ## What It Does
 
 - Save memories as notes, decisions, project logs, conversations, or reflections.
 - Search across your personal archive.
+- Edit memories after saving them.
+- Pin important memories above the timeline.
+- Filter the archive by recurring tags.
 - View your timeline by month.
 - Detect repeated themes, unfinished loops, decisions, and emotional patterns.
+- Generate a local monthly reflection report.
 - Export your archive as JSON.
 - Import a previous archive.
+- Load demo memories to explore the app quickly.
 - Run fully in the browser with no account and no server.
+
+## Try It
+
+No install is required.
+
+1. Open `index.html` in a browser.
+2. Click **Load demo** to see a filled archive.
+3. Add or edit a memory.
+4. Pin an important memory.
+5. Open **Report** to generate a private reflection summary.
+
+For a quick demo view, open `index.html?demo=1&report=1`.
 
 ## Why This Exists
 
@@ -38,6 +63,15 @@ This first version is intentionally simple:
 - no tracking
 
 Open `index.html` in a browser and start writing.
+
+## Challenge Proof
+
+The finished version adds the missing loop that made the project useful:
+
+- capture context
+- organize it through search, tags, pins, and timeline groups
+- reflect on patterns through insights and a monthly report
+- keep the data local unless the user exports it
 
 ## Roadmap
 

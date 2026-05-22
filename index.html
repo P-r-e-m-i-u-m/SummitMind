@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>SummitMind</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <header class="topbar">
@@ -13,10 +13,11 @@
         <h1>SummitMind</h1>
       </div>
       <div class="topbar-actions">
+        <button id="sampleButton" type="button">Load demo</button>
         <button id="exportButton" type="button">Export</button>
         <label class="import-button">
           Import
-          <input id="importInput" type="file" accept="application/json">
+          <input id="importInput" type="file" accept="application/json" />
         </label>
       </div>
     </header>
@@ -32,7 +33,13 @@
           <div class="field-grid">
             <label>
               Title
-              <input id="titleInput" name="title" type="text" placeholder="Why I paused the portfolio redesign" required>
+              <input
+                id="titleInput"
+                name="title"
+                type="text"
+                placeholder="Why I paused the portfolio redesign"
+                required
+              />
             </label>
             <label>
               Type
@@ -48,24 +55,50 @@
 
           <label>
             Memory
-            <textarea id="bodyInput" name="body" rows="7" placeholder="What happened? What did you feel? What did you decide? What still feels unfinished?" required></textarea>
+            <textarea
+              id="bodyInput"
+              name="body"
+              rows="7"
+              placeholder="What happened? What did you feel? What did you decide? What still feels unfinished?"
+              required
+            ></textarea>
           </label>
 
           <label>
             Tags
-            <input id="tagsInput" name="tags" type="text" placeholder="project, doubt, learning, family">
+            <input
+              id="tagsInput"
+              name="tags"
+              type="text"
+              placeholder="project, doubt, learning, family"
+            />
           </label>
 
-          <button class="primary" type="submit">Save memory</button>
+          <div class="form-actions">
+            <button id="saveButton" class="primary" type="submit">
+              Save memory
+            </button>
+            <button id="cancelEditButton" class="ghost hidden" type="button">
+              Cancel edit
+            </button>
+          </div>
         </form>
       </section>
 
       <section class="insights" aria-labelledby="insightsTitle">
-        <div class="section-heading">
-          <h2 id="insightsTitle">Patterns</h2>
-          <p>Signals from your archive. Nothing leaves this browser.</p>
+        <div class="split-heading">
+          <div class="section-heading">
+            <h2 id="insightsTitle">Patterns</h2>
+            <p>Signals from your archive. Nothing leaves this browser.</p>
+          </div>
+          <button id="reportButton" type="button">Report</button>
         </div>
         <div id="insightGrid" class="insight-grid"></div>
+        <article
+          id="reflectionReport"
+          class="reflection-report"
+          hidden
+        ></article>
       </section>
 
       <section class="archive" aria-labelledby="archiveTitle">
@@ -74,9 +107,19 @@
             <h2 id="archiveTitle">Archive</h2>
             <p id="archiveCount">No memories yet.</p>
           </div>
-          <input id="searchInput" class="search" type="search" placeholder="Search memories, tags, decisions">
+          <input
+            id="searchInput"
+            class="search"
+            type="search"
+            placeholder="Search memories, tags, decisions"
+          />
         </div>
 
+        <div
+          id="tagFilters"
+          class="tag-filters"
+          aria-label="Filter memories by tag"
+        ></div>
         <div id="timeline" class="timeline"></div>
       </section>
     </main>
@@ -88,7 +131,17 @@
             <p class="memory-meta"></p>
             <h3></h3>
           </div>
-          <button class="ghost delete-button" type="button" aria-label="Delete memory">Delete</button>
+          <div class="memory-actions">
+            <button class="ghost pin-button" type="button">Pin</button>
+            <button class="ghost edit-button" type="button">Edit</button>
+            <button
+              class="ghost delete-button"
+              type="button"
+              aria-label="Delete memory"
+            >
+              Delete
+            </button>
+          </div>
         </div>
         <p class="memory-body"></p>
         <div class="tag-row"></div>

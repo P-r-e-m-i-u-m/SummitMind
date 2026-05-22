@@ -11,10 +11,10 @@
 
 ## Version 0.2
 
-- Edit existing memories.
-- Pin important memories.
-- Better tag filtering.
-- Monthly reflection generator.
+- Edit existing memories. Done.
+- Pin important memories. Done.
+- Better tag filtering. Done.
+- Monthly reflection generator. Done.
 - Keyboard shortcuts.
 - Print-friendly archive view.
 

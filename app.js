@@ -9,45 +9,95 @@ const searchInput = document.querySelector("#searchInput");
 const timeline = document.querySelector("#timeline");
 const archiveCount = document.querySelector("#archiveCount");
 const insightGrid = document.querySelector("#insightGrid");
+const tagFilters = document.querySelector("#tagFilters");
 const memoryTemplate = document.querySelector("#memoryTemplate");
 const exportButton = document.querySelector("#exportButton");
 const importInput = document.querySelector("#importInput");
+const sampleButton = document.querySelector("#sampleButton");
+const saveButton = document.querySelector("#saveButton");
+const cancelEditButton = document.querySelector("#cancelEditButton");
+const reportButton = document.querySelector("#reportButton");
+const reflectionReport = document.querySelector("#reflectionReport");
 
 let memories = loadMemories();
+let editingId = null;
+let activeTag = "";
+
+applyDemoParams();
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
 
-  const memory = {
-    id: createId(),
+  const nextMemory = {
+    id: editingId || createId(),
     title: titleInput.value.trim(),
     type: typeInput.value,
     body: bodyInput.value.trim(),
     tags: parseTags(tagsInput.value),
-    createdAt: new Date().toISOString()
+    pinned: editingId
+      ? Boolean(memories.find((item) => item.id === editingId)?.pinned)
+      : false,
+    createdAt: editingId
+      ? memories.find((item) => item.id === editingId)?.createdAt ||
+        new Date().toISOString()
+      : new Date().toISOString(),
+    updatedAt: editingId ? new Date().toISOString() : undefined,
   };
 
-  memories = [memory, ...memories];
+  if (editingId) {
+    memories = memories.map((memory) =>
+      memory.id === editingId ? nextMemory : memory,
+    );
+  } else {
+    memories = [nextMemory, ...memories];
+  }
+
   saveMemories(memories);
-  form.reset();
-  titleInput.focus();
+  resetForm();
   render();
+});
+
+cancelEditButton.addEventListener("click", () => {
+  resetForm();
 });
 
 searchInput.addEventListener("input", render);
 
+sampleButton.addEventListener("click", () => {
+  const ok = memories.length
+    ? confirm(
+        "Load demo memories? They will be merged with your current archive.",
+      )
+    : true;
+
+  if (!ok) return;
+
+  memories = mergeMemories(memories, demoMemories());
+  saveMemories(memories);
+  render();
+});
+
+reportButton.addEventListener("click", () => {
+  reflectionReport.hidden = !reflectionReport.hidden;
+  if (!reflectionReport.hidden) {
+    renderReflectionReport(memories);
+  }
+});
+
 exportButton.addEventListener("click", () => {
   const payload = {
     app: "SummitMind",
-    version: 1,
+    version: 2,
     exportedAt: new Date().toISOString(),
-    memories
+    memories,
   };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {
+    type: "application/json",
+  });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `memory-bank-${new Date().toISOString().slice(0, 10)}.json`;
+  link.download = `summitmind-archive-${new Date().toISOString().slice(0, 10)}.json`;
   link.click();
   URL.revokeObjectURL(url);
 });
@@ -76,20 +126,35 @@ importInput.addEventListener("change", async (event) => {
   }
 });
 
+tagFilters.addEventListener("click", (event) => {
+  const button = event.target.closest(".tag-filter");
+  if (!button) return;
+
+  activeTag = button.dataset.tag || "";
+  render();
+});
+
 timeline.addEventListener("click", (event) => {
-  const button = event.target.closest(".delete-button");
+  const button = event.target.closest("button");
   if (!button) return;
 
   const id = button.dataset.id;
   const memory = memories.find((item) => item.id === id);
   if (!memory) return;
 
-  const ok = confirm(`Delete "${memory.title}"?`);
-  if (!ok) return;
+  if (button.classList.contains("delete-button")) {
+    deleteMemory(memory);
+    return;
+  }
 
-  memories = memories.filter((item) => item.id !== id);
-  saveMemories(memories);
-  render();
+  if (button.classList.contains("edit-button")) {
+    startEditing(memory);
+    return;
+  }
+
+  if (button.classList.contains("pin-button")) {
+    togglePinned(memory);
+  }
 });
 
 function loadMemories() {
@@ -97,7 +162,9 @@ function loadMemories() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return seedMemories();
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed.map(normalizeMemory).filter(Boolean) : [];
+    return Array.isArray(parsed)
+      ? parsed.map(normalizeMemory).filter(Boolean)
+      : [];
   } catch {
     return seedMemories();
   }
@@ -118,15 +185,23 @@ function normalizeMemory(item) {
     title,
     type: String(item.type || "Reflection"),
     body,
-    tags: Array.isArray(item.tags) ? item.tags.map(String).map(cleanTag).filter(Boolean) : [],
-    createdAt: isValidDate(item.createdAt) ? item.createdAt : new Date().toISOString()
+    tags: Array.isArray(item.tags)
+      ? item.tags.map(String).map(cleanTag).filter(Boolean)
+      : [],
+    pinned: Boolean(item.pinned),
+    createdAt: isValidDate(item.createdAt)
+      ? item.createdAt
+      : new Date().toISOString(),
+    updatedAt: isValidDate(item.updatedAt) ? item.updatedAt : undefined,
   };
 }
 
 function mergeMemories(current, imported) {
   const byId = new Map();
-  [...imported, ...current].forEach((memory) => byId.set(memory.id, memory));
-  return [...byId.values()].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  [...imported, ...current].forEach((memory) =>
+    byId.set(memory.id, normalizeMemory(memory)),
+  );
+  return [...byId.values()].filter(Boolean).sort(sortMemories);
 }
 
 function parseTags(value) {
@@ -149,16 +224,38 @@ function createId() {
   return `memory-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
+function applyDemoParams() {
+  const params = new URLSearchParams(window.location.search);
+
+  if (params.get("demo") === "1") {
+    memories = mergeMemories(memories, demoMemories());
+    saveMemories(memories);
+  }
+
+  if (params.get("report") === "1") {
+    reflectionReport.hidden = false;
+  }
+}
+
 function render() {
   const query = searchInput.value.trim().toLowerCase();
-  const filtered = memories.filter((memory) => matchesQuery(memory, query));
+  const filtered = memories
+    .filter((memory) => matchesQuery(memory, query))
+    .filter(matchesActiveTag)
+    .sort(sortMemories);
 
-  archiveCount.textContent = memories.length === 1
-    ? "1 memory saved."
-    : `${memories.length} memories saved.`;
+  archiveCount.textContent =
+    memories.length === 1
+      ? "1 memory saved."
+      : `${memories.length} memories saved.`;
 
   renderInsights(memories);
+  renderTagFilters(memories);
   renderTimeline(filtered, query);
+
+  if (!reflectionReport.hidden) {
+    renderReflectionReport(memories);
+  }
 }
 
 function matchesQuery(memory, query) {
@@ -167,9 +264,49 @@ function matchesQuery(memory, query) {
     memory.title,
     memory.type,
     memory.body,
-    memory.tags.join(" ")
-  ].join(" ").toLowerCase();
+    memory.tags.join(" "),
+  ]
+    .join(" ")
+    .toLowerCase();
   return haystack.includes(query);
+}
+
+function matchesActiveTag(memory) {
+  return !activeTag || memory.tags.includes(activeTag);
+}
+
+function sortMemories(a, b) {
+  if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+  return new Date(b.createdAt) - new Date(a.createdAt);
+}
+
+function renderTagFilters(items) {
+  tagFilters.innerHTML = "";
+  const tags = countItems(items.flatMap((item) => item.tags));
+  const entries = Object.entries(tags).sort(
+    (a, b) => b[1] - a[1] || a[0].localeCompare(b[0]),
+  );
+
+  if (!entries.length) {
+    tagFilters.hidden = true;
+    activeTag = "";
+    return;
+  }
+
+  tagFilters.hidden = false;
+  tagFilters.append(createTagFilterButton("All", "", items.length));
+  entries.forEach(([tag, count]) =>
+    tagFilters.append(createTagFilterButton(tag, tag, count)),
+  );
+}
+
+function createTagFilterButton(label, tag, count) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `tag-filter${activeTag === tag ? " active" : ""}`;
+  button.dataset.tag = tag;
+  button.textContent = `${label} (${count})`;
+  return button;
 }
 
 function renderTimeline(items, query) {
@@ -178,9 +315,10 @@ function renderTimeline(items, query) {
   if (!items.length) {
     const empty = document.createElement("p");
     empty.className = "empty";
-    empty.textContent = query
-      ? "No memories match that search yet."
-      : "Start with one honest memory. The archive becomes useful when it remembers the context you usually lose.";
+    empty.textContent =
+      query || activeTag
+        ? "No memories match that filter yet."
+        : "Start with one honest memory. The archive becomes useful when it remembers the context you usually lose.";
     timeline.append(empty);
     return;
   }
@@ -202,9 +340,18 @@ function renderTimeline(items, query) {
 
 function createMemoryCard(memory) {
   const node = memoryTemplate.content.firstElementChild.cloneNode(true);
-  node.querySelector(".memory-meta").textContent = `${memory.type} | ${formatDate(memory.createdAt)}`;
+  node.classList.toggle("pinned", memory.pinned);
+  node.querySelector(".memory-meta").textContent =
+    `${memory.pinned ? "Pinned | " : ""}${memory.type} | ${formatDate(memory.createdAt)}`;
   node.querySelector("h3").textContent = memory.title;
   node.querySelector(".memory-body").textContent = memory.body;
+
+  const pinButton = node.querySelector(".pin-button");
+  pinButton.dataset.id = memory.id;
+  pinButton.textContent = memory.pinned ? "Unpin" : "Pin";
+
+  const editButton = node.querySelector(".edit-button");
+  editButton.dataset.id = memory.id;
 
   const deleteButton = node.querySelector(".delete-button");
   deleteButton.dataset.id = memory.id;
@@ -224,12 +371,50 @@ function groupByMonth(items) {
   return items.reduce((groups, memory) => {
     const label = new Intl.DateTimeFormat("en", {
       month: "long",
-      year: "numeric"
+      year: "numeric",
     }).format(new Date(memory.createdAt));
     groups[label] ||= [];
     groups[label].push(memory);
     return groups;
   }, {});
+}
+
+function startEditing(memory) {
+  editingId = memory.id;
+  titleInput.value = memory.title;
+  typeInput.value = memory.type;
+  bodyInput.value = memory.body;
+  tagsInput.value = memory.tags.join(", ");
+  saveButton.textContent = "Update memory";
+  cancelEditButton.classList.remove("hidden");
+  titleInput.focus();
+}
+
+function resetForm() {
+  editingId = null;
+  form.reset();
+  saveButton.textContent = "Save memory";
+  cancelEditButton.classList.add("hidden");
+  titleInput.focus();
+}
+
+function deleteMemory(memory) {
+  const ok = confirm(`Delete "${memory.title}"?`);
+  if (!ok) return;
+
+  memories = memories.filter((item) => item.id !== memory.id);
+  saveMemories(memories);
+  render();
+}
+
+function togglePinned(memory) {
+  memories = memories.map((item) =>
+    item.id === memory.id
+      ? { ...item, pinned: !item.pinned, updatedAt: new Date().toISOString() }
+      : item,
+  );
+  saveMemories(memories);
+  render();
 }
 
 function renderInsights(items) {
@@ -251,42 +436,123 @@ function analyzeMemories(items) {
     return [
       {
         title: "No archive yet",
-        body: "Save a few memories and this space will start showing recurring themes, decisions, and unfinished loops."
-      }
+        body: "Save a few memories and this space will start showing recurring themes, decisions, and unfinished loops.",
+      },
     ];
   }
 
-  const allText = items.map((item) => `${item.title} ${item.body} ${item.tags.join(" ")}`).join(" ").toLowerCase();
+  const allText = items
+    .map((item) => `${item.title} ${item.body} ${item.tags.join(" ")}`)
+    .join(" ")
+    .toLowerCase();
   const tags = countItems(items.flatMap((item) => item.tags));
   const types = countItems(items.map((item) => item.type));
-  const decisionCount = countMatches(allText, ["decided", "choose", "choice", "changed my mind", "commit"]);
-  const unfinishedCount = countMatches(allText, ["unfinished", "stuck", "paused", "later", "someday", "blocked"]);
-  const feelingCount = countMatches(allText, ["felt", "feel", "afraid", "excited", "tired", "confused", "clear"]);
+  const decisionCount = countMatches(allText, [
+    "decided",
+    "choose",
+    "choice",
+    "changed my mind",
+    "commit",
+  ]);
+  const unfinishedCount = countMatches(allText, [
+    "unfinished",
+    "stuck",
+    "paused",
+    "later",
+    "someday",
+    "blocked",
+  ]);
+  const feelingCount = countMatches(allText, [
+    "felt",
+    "feel",
+    "afraid",
+    "excited",
+    "tired",
+    "confused",
+    "clear",
+  ]);
   const topTag = Object.entries(tags).sort((a, b) => b[1] - a[1])[0];
   const topType = Object.entries(types).sort((a, b) => b[1] - a[1])[0];
+  const pinnedCount = items.filter((item) => item.pinned).length;
 
   return [
     {
       title: "Strongest theme",
-      body: topTag ? `"${topTag[0]}" appears most often. That might be where your attention keeps returning.` : "Add tags to reveal recurring themes."
+      body: topTag
+        ? `"${topTag[0]}" appears most often. That might be where your attention keeps returning.`
+        : "Add tags to reveal recurring themes.",
     },
     {
       title: "Archive shape",
-      body: topType ? `${topType[0]} is your most common memory type. Your archive currently leans that way.` : "Your archive is still forming."
+      body: topType
+        ? `${topType[0]} is your most common memory type. Your archive currently leans that way.`
+        : "Your archive is still forming.",
     },
     {
       title: "Decisions noticed",
-      body: decisionCount ? `${decisionCount} decision signal${decisionCount === 1 ? "" : "s"} found. These are worth reviewing before you reopen old questions.` : "No strong decision signals yet."
+      body: decisionCount
+        ? `${decisionCount} decision signal${decisionCount === 1 ? "" : "s"} found. These are worth reviewing before you reopen old questions.`
+        : "No strong decision signals yet.",
     },
     {
       title: "Unfinished loops",
-      body: unfinishedCount ? `${unfinishedCount} unfinished signal${unfinishedCount === 1 ? "" : "s"} found. Some of these may be old weight, some may be live ideas.` : "No obvious unfinished loops yet."
+      body: unfinishedCount
+        ? `${unfinishedCount} unfinished signal${unfinishedCount === 1 ? "" : "s"} found. Some of these may be old weight, some may be live ideas.`
+        : "No obvious unfinished loops yet.",
+    },
+    {
+      title: "Pinned context",
+      body: pinnedCount
+        ? `${pinnedCount} pinned memor${pinnedCount === 1 ? "y" : "ies"} will stay above the timeline.`
+        : "Pin a memory when it still matters.",
     },
     {
       title: "Emotional context",
-      body: feelingCount ? `${feelingCount} feeling signal${feelingCount === 1 ? "" : "s"} found. This helps explain why things changed, not just what changed.` : "Try writing how a memory felt, not only what happened."
-    }
+      body: feelingCount
+        ? `${feelingCount} feeling signal${feelingCount === 1 ? "" : "s"} found. This helps explain why things changed, not just what changed.`
+        : "Try writing how a memory felt, not only what happened.",
+    },
   ];
+}
+
+function renderReflectionReport(items) {
+  const tags = Object.entries(countItems(items.flatMap((item) => item.tags)))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+  const pinned = items.filter((item) => item.pinned).slice(0, 3);
+  const recent = [...items]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 3);
+
+  reflectionReport.innerHTML = "";
+
+  const title = document.createElement("h3");
+  title.textContent = "Monthly reflection report";
+  reflectionReport.append(title);
+
+  const summary = document.createElement("p");
+  summary.textContent = items.length
+    ? `Your archive has ${items.length} memories, ${pinned.length} pinned priorities, and ${tags.length} recurring themes. Use this report to review what still needs attention.`
+    : "Your archive is empty. Add memories or load demo data to generate a useful report.";
+  reflectionReport.append(summary);
+
+  const list = document.createElement("ul");
+  [
+    tags.length
+      ? `Recurring themes: ${tags.map(([tag, count]) => `${tag} (${count})`).join(", ")}.`
+      : "No recurring tags yet.",
+    pinned.length
+      ? `Pinned review: ${pinned.map((item) => item.title).join("; ")}.`
+      : "No pinned memories yet.",
+    recent.length
+      ? `Recent context: ${recent.map((item) => item.title).join("; ")}.`
+      : "No recent memories yet.",
+  ].forEach((item) => {
+    const li = document.createElement("li");
+    li.textContent = item;
+    list.append(li);
+  });
+  reflectionReport.append(list);
 }
 
 function countItems(items) {
@@ -298,14 +564,17 @@ function countItems(items) {
 }
 
 function countMatches(text, needles) {
-  return needles.reduce((total, needle) => total + (text.includes(needle) ? 1 : 0), 0);
+  return needles.reduce(
+    (total, needle) => total + (text.includes(needle) ? 1 : 0),
+    0,
+  );
 }
 
 function formatDate(value) {
   return new Intl.DateTimeFormat("en", {
     day: "numeric",
     month: "short",
-    year: "numeric"
+    year: "numeric",
   }).format(new Date(value));
 }
 
@@ -317,8 +586,42 @@ function seedMemories() {
       type: "Reflection",
       body: "This sample is here so the app does not feel empty. Delete it when you are ready. A useful memory includes what happened, why it mattered, and what still feels open.",
       tags: ["starting-point", "reflection"],
-      createdAt: new Date().toISOString()
-    }
+      pinned: false,
+      createdAt: new Date().toISOString(),
+    },
+  ];
+}
+
+function demoMemories() {
+  const now = Date.now();
+  return [
+    {
+      id: "demo-finish-up",
+      title: "I almost abandoned SummitMind",
+      type: "Project log",
+      body: "The original app could capture memories, but it still felt like a note list. I paused because the product did not yet show a real before and after.",
+      tags: ["finish-up", "project", "blocked"],
+      pinned: true,
+      createdAt: new Date(now - 1000 * 60 * 60 * 24 * 14).toISOString(),
+    },
+    {
+      id: "demo-decision",
+      title: "Decided to keep it local-first",
+      type: "Decision",
+      body: "I decided the private archive should stay in the browser first. Sync can come later, but trust has to be the first feature.",
+      tags: ["privacy", "decision", "local-first"],
+      pinned: true,
+      createdAt: new Date(now - 1000 * 60 * 60 * 24 * 9).toISOString(),
+    },
+    {
+      id: "demo-review",
+      title: "Monthly review needs a clear report",
+      type: "Reflection",
+      body: "A useful memory tool should summarize what keeps repeating: unfinished work, decisions, emotions, and ideas worth reopening.",
+      tags: ["reflection", "report", "patterns"],
+      pinned: false,
+      createdAt: new Date(now - 1000 * 60 * 60 * 24 * 3).toISOString(),
+    },
   ];
 }
 
