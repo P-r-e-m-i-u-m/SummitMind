@@ -11,6 +11,7 @@ Most note apps help you store information. SummitMind helps you notice what keep
 - Demo view: open `index.html?demo=1&report=1`
 - Live demo: <https://p-r-e-m-i-u-m.github.io/SummitMind/?demo=1&report=1>
 - DEV article: <https://dev.to/premium_26/summitmind-finishing-a-local-first-memory-app-for-the-github-finish-up-a-thon-5h49>
+- Build proof: [docs/BUILD_PROOF.md](docs/BUILD_PROOF.md)
 - Judge guide: [docs/JUDGE_GUIDE.md](docs/JUDGE_GUIDE.md)
 - Demo report: [docs/DEMO_REPORT.md](docs/DEMO_REPORT.md)
 - DEV post draft: [docs/DEV_POST.md](docs/DEV_POST.md)
@@ -22,6 +23,8 @@ Most note apps help you store information. SummitMind helps you notice what keep
 SummitMind started as a simple browser note archive and then stalled before it felt like a finished product. This revival turns it into a usable local-first reflection tool with editing, pinning, tag filters, demo data, Markdown reports, print support, and a monthly review flow.
 
 Read the public DEV write-up: [SummitMind: Finishing a Local-First Memory App for the GitHub Finish-Up-A-Thon](https://dev.to/premium_26/summitmind-finishing-a-local-first-memory-app-for-the-github-finish-up-a-thon-5h49).
+
+Review the ownership and publishing proof in [docs/BUILD_PROOF.md](docs/BUILD_PROOF.md).
 
 See [CHALLENGE_SUBMISSION.md](CHALLENGE_SUBMISSION.md) for the before/after story and implementation notes.
 

@@ -12,12 +12,13 @@ The demo URL loads sample memories and opens the monthly reflection report.
 
 1. Open the live demo link.
 2. Notice the pinned memories at the top of the archive.
-3. Click a tag filter such as `reflection` or `privacy`.
-4. Click **Edit** on a memory and update any field.
-5. Click **Report** if the report is hidden.
-6. Click **Copy** to copy the monthly report as Markdown.
-7. Click **Print** to preview the clean review layout.
-8. Export the archive as JSON if you want to inspect the local data format.
+3. Open the proof links in the top overview panel.
+4. Click a tag filter such as `reflection` or `privacy`.
+5. Click **Edit** on a memory and update any field.
+6. Click **Report** if the report is hidden.
+7. Click **Copy** to copy the monthly report as Markdown.
+8. Click **Print** to preview the clean review layout.
+9. Export the archive as JSON if you want to inspect the local data format.
 
 ## What Changed During The Finish-Up
 

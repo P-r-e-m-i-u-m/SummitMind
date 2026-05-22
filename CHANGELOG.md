@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.0
+
+- Redesign the app with a stronger minimalist SaaS visual system.
+- Add in-app proof links for the DEV article, release, and CI checks.
+- Add build proof documentation for reviewers.
+- Refresh the judge guide to point reviewers at the proof panel.
+
 ## 0.4.0
 
 - Add GitHub Pages deployment for a one-click live demo.
