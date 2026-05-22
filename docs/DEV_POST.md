@@ -12,6 +12,8 @@ The app runs in the browser with no account, no backend, and no tracking. Memori
 
 Repository: https://github.com/P-r-e-m-i-u-m/SummitMind
 
+Live demo: https://p-r-e-m-i-u-m.github.io/SummitMind/?demo=1&report=1
+
 Demo path: open `index.html?demo=1&report=1`
 
 Release: https://github.com/P-r-e-m-i-u-m/SummitMind/releases/tag/v0.2.0
@@ -44,6 +46,7 @@ The revived version now supports a complete reflection flow:
 I also added:
 
 - demo data for quick evaluation
+- GitHub Pages deployment for a one-click live demo
 - a demo screenshot and report
 - keyboard shortcuts for search and save
 - accessibility polish with a skip link and live status updates
@@ -94,6 +97,8 @@ That turned it from a note list into a small personal continuity tool.
 ## Links
 
 - Repository: https://github.com/P-r-e-m-i-u-m/SummitMind
+- Live demo: https://p-r-e-m-i-u-m.github.io/SummitMind/?demo=1&report=1
+- Judge guide: https://github.com/P-r-e-m-i-u-m/SummitMind/blob/main/docs/JUDGE_GUIDE.md
 - Demo report: https://github.com/P-r-e-m-i-u-m/SummitMind/blob/main/docs/DEMO_REPORT.md
 - Challenge notes: https://github.com/P-r-e-m-i-u-m/SummitMind/blob/main/CHALLENGE_SUBMISSION.md
 

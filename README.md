@@ -9,6 +9,8 @@ Most note apps help you store information. SummitMind helps you notice what keep
 ## Quick Links
 
 - Demo view: open `index.html?demo=1&report=1`
+- Live demo: <https://p-r-e-m-i-u-m.github.io/SummitMind/?demo=1&report=1>
+- Judge guide: [docs/JUDGE_GUIDE.md](docs/JUDGE_GUIDE.md)
 - Demo report: [docs/DEMO_REPORT.md](docs/DEMO_REPORT.md)
 - DEV post draft: [docs/DEV_POST.md](docs/DEV_POST.md)
 - Challenge notes: [CHALLENGE_SUBMISSION.md](CHALLENGE_SUBMISSION.md)
@@ -43,7 +45,7 @@ See [CHALLENGE_SUBMISSION.md](CHALLENGE_SUBMISSION.md) for the before/after stor
 
 No install is required.
 
-1. Open `index.html` in a browser.
+1. Open the [live demo](https://p-r-e-m-i-u-m.github.io/SummitMind/?demo=1&report=1) or open `index.html` in a browser.
 2. Click **Load demo** to see a filled archive.
 3. Add or edit a memory.
 4. Pin an important memory.

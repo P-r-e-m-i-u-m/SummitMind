@@ -4,7 +4,13 @@ This report documents the revived SummitMind workflow for the DEV GitHub Finish-
 
 ## Demo URL
 
-Open:
+Live demo:
+
+```text
+https://p-r-e-m-i-u-m.github.io/SummitMind/?demo=1&report=1
+```
+
+Local demo:
 
 ```text
 index.html?demo=1&report=1

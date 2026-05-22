@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+
+- Add GitHub Pages deployment for a one-click live demo.
+- Add a judge guide with a 90-second review path.
+- Add live demo links to the README, DEV post draft, demo report, and challenge notes.
+
 ## 0.3.0
 
 - Add copyable Markdown reflection reports.

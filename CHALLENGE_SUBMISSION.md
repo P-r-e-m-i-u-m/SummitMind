@@ -8,6 +8,14 @@ SummitMind
 
 https://github.com/P-r-e-m-i-u-m/SummitMind
 
+## Live Demo
+
+https://p-r-e-m-i-u-m.github.io/SummitMind/?demo=1&report=1
+
+## Judge Guide
+
+https://github.com/P-r-e-m-i-u-m/SummitMind/blob/main/docs/JUDGE_GUIDE.md
+
 ## What I Started With
 
 SummitMind began as a local-first memory archive: a small browser app where someone could save personal notes, decisions, project logs, and reflections. The first version had a good idea, but it still felt unfinished.
@@ -35,6 +43,7 @@ I added:
 - copyable Markdown reports
 - print-friendly archive/report output
 - demo memories so people can understand the app quickly
+- GitHub Pages deployment so reviewers can try the app without cloning
 - keyboard shortcuts, live status updates, and a skip link
 - GitHub Actions checks for formatting and JavaScript syntax
 - clearer README instructions
