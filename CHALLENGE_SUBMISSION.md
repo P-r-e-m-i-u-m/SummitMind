@@ -32,7 +32,11 @@ I added:
 - pin and unpin controls for important memories
 - tag filters generated from the archive
 - a private monthly reflection report
+- copyable Markdown reports
+- print-friendly archive/report output
 - demo memories so people can understand the app quickly
+- keyboard shortcuts, live status updates, and a skip link
+- GitHub Actions checks for formatting and JavaScript syntax
 - clearer README instructions
 - a challenge-ready before/after story
 
@@ -53,6 +57,8 @@ After:
 - capture, edit, pin, filter, review
 - demo data shows the product immediately
 - monthly report turns saved memories into a usable reflection
+- Markdown copy and print support make the report portable
+- CI checks make the project easier to maintain
 - private local-first behavior is still preserved
 - the README explains how to try and evaluate the project
 
@@ -63,6 +69,7 @@ GitHub Copilot helped me finish the project in a realistic way:
 - turn the old roadmap into concrete implementation steps
 - refactor the memory model without adding a framework
 - add edit and pin behavior while preserving localStorage compatibility
+- add report copy/print polish and keyboard shortcuts
 - improve the UI copy so the app feels human, calm, and private
 - draft the before/after narrative for the submission
 

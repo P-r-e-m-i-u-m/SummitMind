@@ -1,0 +1,15 @@
+{
+  "name": "summitmind",
+  "version": "0.3.0",
+  "private": true,
+  "description": "Local-first memory app for understanding thoughts, decisions, projects, and recurring patterns.",
+  "scripts": {
+    "check": "npm run check:format && npm run check:syntax",
+    "check:format": "prettier --check \"**/*.{html,css,js,md,json}\"",
+    "check:syntax": "node --check app.js",
+    "format": "prettier --write \"**/*.{html,css,js,md,json}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.8.3"
+  }
+}

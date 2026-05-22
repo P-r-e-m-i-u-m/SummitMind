@@ -8,7 +8,6 @@ assignees: ""
 
 ## What Happened?
 
-
 ## Steps To Reproduce
 
 1.
@@ -17,9 +16,6 @@ assignees: ""
 
 ## Expected Behavior
 
-
 ## Browser / Device
 
-
 ## Notes
-

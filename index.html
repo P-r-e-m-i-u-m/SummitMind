@@ -4,13 +4,19 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>SummitMind</title>
+    <meta
+      name="description"
+      content="A local-first memory app for understanding thoughts, decisions, projects, and recurring patterns."
+    />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <a class="skip-link" href="#archiveTitle">Skip to archive</a>
     <header class="topbar">
       <div>
         <p class="eyebrow">local-first open source</p>
         <h1>SummitMind</h1>
+        <p id="statusMessage" class="status-message" aria-live="polite"></p>
       </div>
       <div class="topbar-actions">
         <button id="sampleButton" type="button">Load demo</button>
@@ -91,7 +97,11 @@
             <h2 id="insightsTitle">Patterns</h2>
             <p>Signals from your archive. Nothing leaves this browser.</p>
           </div>
-          <button id="reportButton" type="button">Report</button>
+          <div class="report-actions">
+            <button id="reportButton" type="button">Report</button>
+            <button id="copyReportButton" type="button" disabled>Copy</button>
+            <button id="printButton" type="button">Print</button>
+          </div>
         </div>
         <div id="insightGrid" class="insight-grid"></div>
         <article

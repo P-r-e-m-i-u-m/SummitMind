@@ -17,7 +17,10 @@ const sampleButton = document.querySelector("#sampleButton");
 const saveButton = document.querySelector("#saveButton");
 const cancelEditButton = document.querySelector("#cancelEditButton");
 const reportButton = document.querySelector("#reportButton");
+const copyReportButton = document.querySelector("#copyReportButton");
+const printButton = document.querySelector("#printButton");
 const reflectionReport = document.querySelector("#reflectionReport");
+const statusMessage = document.querySelector("#statusMessage");
 
 let memories = loadMemories();
 let editingId = null;
@@ -27,6 +30,7 @@ applyDemoParams();
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();
+  const wasEditing = Boolean(editingId);
 
   const nextMemory = {
     id: editingId || createId(),
@@ -54,7 +58,22 @@ form.addEventListener("submit", (event) => {
 
   saveMemories(memories);
   resetForm();
+  announce(wasEditing ? "Memory updated." : "Memory saved.");
   render();
+});
+
+document.addEventListener("keydown", (event) => {
+  const modifier = event.metaKey || event.ctrlKey;
+
+  if (modifier && event.key.toLowerCase() === "k") {
+    event.preventDefault();
+    searchInput.focus();
+  }
+
+  if (modifier && event.key === "Enter") {
+    event.preventDefault();
+    form.requestSubmit();
+  }
 });
 
 cancelEditButton.addEventListener("click", () => {
@@ -74,14 +93,42 @@ sampleButton.addEventListener("click", () => {
 
   memories = mergeMemories(memories, demoMemories());
   saveMemories(memories);
+  announce("Demo memories loaded.");
   render();
 });
 
 reportButton.addEventListener("click", () => {
   reflectionReport.hidden = !reflectionReport.hidden;
+  copyReportButton.disabled = reflectionReport.hidden;
   if (!reflectionReport.hidden) {
     renderReflectionReport(memories);
+    announce("Reflection report opened.");
   }
+});
+
+copyReportButton.addEventListener("click", async () => {
+  const markdown = buildReportMarkdown(memories);
+
+  try {
+    await navigator.clipboard.writeText(markdown);
+    announce("Report copied as Markdown.");
+  } catch {
+    downloadText(
+      markdown,
+      `summitmind-report-${new Date().toISOString().slice(0, 10)}.md`,
+      "text/markdown",
+    );
+    announce("Clipboard unavailable. Report downloaded instead.");
+  }
+});
+
+printButton.addEventListener("click", () => {
+  if (reflectionReport.hidden) {
+    reflectionReport.hidden = false;
+    copyReportButton.disabled = false;
+    renderReflectionReport(memories);
+  }
+  window.print();
 });
 
 exportButton.addEventListener("click", () => {
@@ -91,15 +138,12 @@ exportButton.addEventListener("click", () => {
     exportedAt: new Date().toISOString(),
     memories,
   };
-  const blob = new Blob([JSON.stringify(payload, null, 2)], {
-    type: "application/json",
-  });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `summitmind-archive-${new Date().toISOString().slice(0, 10)}.json`;
-  link.click();
-  URL.revokeObjectURL(url);
+  downloadText(
+    JSON.stringify(payload, null, 2),
+    `summitmind-archive-${new Date().toISOString().slice(0, 10)}.json`,
+    "application/json",
+  );
+  announce("Archive exported.");
 });
 
 importInput.addEventListener("change", async (event) => {
@@ -118,6 +162,9 @@ importInput.addEventListener("change", async (event) => {
     const cleaned = imported.map(normalizeMemory).filter(Boolean);
     memories = mergeMemories(memories, cleaned);
     saveMemories(memories);
+    announce(
+      `${cleaned.length} imported memor${cleaned.length === 1 ? "y" : "ies"} merged.`,
+    );
     render();
   } catch (error) {
     alert(`Import failed: ${error.message}`);
@@ -172,6 +219,20 @@ function loadMemories() {
 
 function saveMemories(nextMemories) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(nextMemories));
+}
+
+function downloadText(text, filename, type) {
+  const blob = new Blob([text], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function announce(message) {
+  statusMessage.textContent = message;
 }
 
 function normalizeMemory(item) {
@@ -234,6 +295,7 @@ function applyDemoParams() {
 
   if (params.get("report") === "1") {
     reflectionReport.hidden = false;
+    copyReportButton.disabled = false;
   }
 }
 
@@ -305,6 +367,7 @@ function createTagFilterButton(label, tag, count) {
   button.type = "button";
   button.className = `tag-filter${activeTag === tag ? " active" : ""}`;
   button.dataset.tag = tag;
+  button.setAttribute("aria-pressed", String(activeTag === tag));
   button.textContent = `${label} (${count})`;
   return button;
 }
@@ -404,6 +467,7 @@ function deleteMemory(memory) {
 
   memories = memories.filter((item) => item.id !== memory.id);
   saveMemories(memories);
+  announce("Memory deleted.");
   render();
 }
 
@@ -414,6 +478,7 @@ function togglePinned(memory) {
       : item,
   );
   saveMemories(memories);
+  announce(memory.pinned ? "Memory unpinned." : "Memory pinned.");
   render();
 }
 
@@ -553,6 +618,41 @@ function renderReflectionReport(items) {
     list.append(li);
   });
   reflectionReport.append(list);
+}
+
+function buildReportMarkdown(items) {
+  const tags = Object.entries(countItems(items.flatMap((item) => item.tags)))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+  const pinned = items.filter((item) => item.pinned).slice(0, 3);
+  const recent = [...items]
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    .slice(0, 3);
+
+  return [
+    "# SummitMind Monthly Reflection Report",
+    "",
+    `Generated: ${new Date().toLocaleString()}`,
+    "",
+    `Archive size: ${items.length} memories`,
+    `Pinned priorities: ${pinned.length}`,
+    "",
+    "## Recurring Themes",
+    tags.length
+      ? tags.map(([tag, count]) => `- ${tag}: ${count}`).join("\n")
+      : "- No recurring tags yet.",
+    "",
+    "## Pinned Review",
+    pinned.length
+      ? pinned.map((item) => `- ${item.title}`).join("\n")
+      : "- No pinned memories yet.",
+    "",
+    "## Recent Context",
+    recent.length
+      ? recent.map((item) => `- ${item.title}`).join("\n")
+      : "- No recent memories yet.",
+    "",
+  ].join("\n");
 }
 
 function countItems(items) {

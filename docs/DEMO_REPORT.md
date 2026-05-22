@@ -25,7 +25,9 @@ The revived app now supports a complete local-first memory loop:
 3. Pin memories that still matter.
 4. Filter by recurring tags.
 5. Generate a private monthly reflection report.
-6. Export or import the archive as JSON.
+6. Copy the report as Markdown.
+7. Print a clean archive/report view.
+8. Export or import the archive as JSON.
 
 ## Verification Notes
 
@@ -33,3 +35,4 @@ The revived app now supports a complete local-first memory loop:
 - The app stores data in browser `localStorage`.
 - No external scripts, trackers, or backend services are used.
 - Demo data is opt-in through the **Load demo** button or the demo query string.
+- GitHub Actions runs formatting and JavaScript syntax checks.
